@@ -74,10 +74,18 @@ void mostrar_vec(vector<ele_rel> vec)
    for(auto i:vec){cout << "id2: " << i.id2 << " freq:" << i.freq << endl;}
 }
 
+void mostrar_vecd(vector<dis_cos> vec)
+{
+   for(auto i:vec){cout << "id: " << i.id << " dist:" << i.dist << endl;}
+}
+
 
 
 int main(int argc, char* argv[])
 {
+   //IDs 10 palabras
+   vector<int> id_pal = {1685,14529,19430,20294,20551,36880,42365,49120,50491,52480};
+
    
    vector<ele_rel> vector_rel;
    vector<ele_rel> vector_nor;
@@ -89,7 +97,7 @@ int main(int argc, char* argv[])
       connection C("dbname=BD2_corpus_final user=postgres password=Hakerlol1 \
       hostaddr=127.0.0.1 port=5432");
       work W(C);
-      //Seleccionamos las relaciones de la palabra con id2 = 20551
+      //Seleccionamos las relaciones de la palabra con id2 = x
       C.prepare("get_id","SELECT id2,freq FROM relaciones20 WHERE id2 = $1");
       result R( W.prepared("get_id")(20551).exec());
       W.commit();
@@ -106,7 +114,8 @@ int main(int argc, char* argv[])
       mostrar_vec(vector_nor);
 
       vector_rel.clear();
-
+      //Esto sirve para sacar TODOS los valores de la tabla relaciones20
+      /*
       work W1(C);
       C.prepare("get_id_freq","SELECT id2,freq FROM relaciones20");
       result S( W1.prepared("get_id_freq").exec());
@@ -114,20 +123,31 @@ int main(int argc, char* argv[])
       for (result::const_iterator c = S.begin(); c != S.end(); ++c) {
          vector_rel.push_back({c[0].as<int>(),c[1].as<double>()});   
       }   
+      */
 
       cout << "Todos los valores de la tabla relaciones" << endl;
-      mostrar_vec(vector_rel);
+      //mostrar_vec(vector_rel);
       //hasta aqui funciona
-      /*
-      for (int i = 0; i < vector_rel.size(); ++i)
+      
+      for (int i = 0; i < id_pal.size(); ++i)
       {
-         vector_dis.push_back({i+1,distanciacos(vector_rel[i],)});       
-      }   
-      */
+         //sacamos las palabras en bloques de acuerdo al vector 'id_pal'
+         work W1(C);
+         C.prepare("get_id2","SELECT id2,freq FROM relaciones20 WHERE id1 = $1");
+         result S( W1.prepared("get_id2")(id_pal[i]).exec());
+         W1.commit();
+         //Guardamos todos los registros
+         for (result::const_iterator c = S.begin(); c != S.end(); ++c) {
+            vector_rel.push_back({c[0].as<int>(),c[1].as<double>()}); 
+         }
+         vector_dis.push_back({id_pal[i],distanciacos(vector_nor,vector_rel)});       
+      }
+      cout << "vector distancias" << endl;
+      mostrar_vecd(vector_dis);
+      
       cout << "Operation done successfully" << endl;
       
       C.disconnect ();
-
    }
 
    catch (const std::exception &e){
