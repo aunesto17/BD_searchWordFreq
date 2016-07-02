@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <math.h>
+//#include <fixed>
 
 using namespace std;
 using namespace pqxx;
@@ -18,7 +19,7 @@ struct ele_rel{
 //struct para guardar las distancias de las palabras
 struct dis_cos{
    int id;
-   double dist;
+   long double dist;
 };
 
 
@@ -40,13 +41,13 @@ vector<ele_rel> normalizar(vector<ele_rel> a)
 }
 
 //funcion para sacar la distancia entre 2 sets de palabras
-double distanciacos(vector<ele_rel> a, vector<ele_rel> b)
+long double distanciacos(vector<ele_rel> a, vector<ele_rel> b)
 {
    int tam1=a.size();
    int tam2=b.size();
-   double suma=0;
-   double sumv1=1;
-   double sumv2=0;
+   long double suma=0;
+   long double sumv1=1;
+   long double sumv2=0;
    for (int i = 0; i < tam2; ++i)
    {sumv2 = sumv2 + pow(b[i].freq,2);}
    sumv2 = sqrt(sumv2);
@@ -75,7 +76,8 @@ void mostrar_vec(vector<ele_rel> vec)
 }
 
 void mostrar_vecd(vector<dis_cos> vec)
-{
+{  
+   cout << fixed;
    for(auto i:vec){cout << "id: " << i.id << " dist:" << i.dist << endl;}
 }
 
@@ -140,7 +142,8 @@ int main(int argc, char* argv[])
          for (result::const_iterator c = S.begin(); c != S.end(); ++c) {
             vector_rel.push_back({c[0].as<int>(),c[1].as<double>()}); 
          }
-         vector_dis.push_back({id_pal[i],distanciacos(vector_nor,vector_rel)});       
+         vector_dis.push_back({id_pal[i],distanciacos(vector_nor,vector_rel)});
+         vector_rel.clear();       
       }
       cout << "vector distancias" << endl;
       mostrar_vecd(vector_dis);
