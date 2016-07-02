@@ -22,6 +22,12 @@ struct dis_cos{
    long double dist;
 };
 
+bool my_cmp(const dis_cos & a, const dis_cos & b)
+{
+    // smallest comes first
+    return a.dist > b.dist;
+}
+
 
 //funcion para normalizar las frecuencias
 vector<ele_rel> normalizar(vector<ele_rel> a)
@@ -48,6 +54,7 @@ long double distanciacos(vector<ele_rel> a, vector<ele_rel> b)
    long double suma=0;
    long double sumv1=1;
    long double sumv2=0;
+   long double res;
    for (int i = 0; i < tam2; ++i)
    {sumv2 = sumv2 + pow(b[i].freq,2);}
    sumv2 = sqrt(sumv2);
@@ -64,9 +71,8 @@ long double distanciacos(vector<ele_rel> a, vector<ele_rel> b)
          j++;
       }
    }
-
-   return suma/(sumv1*sumv2);
-
+   res = suma/(sumv1*sumv2);
+   return isnan(res) ? 0 : res;
 }
 
 //print vector
@@ -75,24 +81,28 @@ void mostrar_vec(vector<ele_rel> vec)
    for(auto i:vec){cout << "id2: " << i.id2 << " freq:" << i.freq << endl;}
 }
 
-void mostrar_vecd(vector<dis_cos> vec)
+void mostrar_vecd(vector<dis_cos> vec,vector<string> pal,vector<int> id)
 {  
+   int pos;
    cout << fixed;
-   for(auto i:vec){cout << "id: " << i.id << " dist:" << i.dist << endl;}
+   for(auto i:vec){
+      pos = find(id.begin(),id.end(),i.id) - id.begin();
+      cout << "id: " << i.id << "\t pal: " << pal[pos] << "\t dist:" << i.dist << endl;
+   }
 }
 
 
 
 int main(int argc, char* argv[])
 {
+   cout.precision(10);
    //IDs 10 palabras
    vector<int> id_pal = {1685,14529,19430,20294,20551,36880,42365,49120,50491,52480};
-
+   vector<string> palabras = {"God","pizza","hamburger","pen","cat","lion","Buddha","tiger","notebook","Allah"};
    
    vector<ele_rel> vector_rel;
    vector<ele_rel> vector_nor;
    vector<dis_cos> vector_dis;
-
 
    try{
       //Conexion a la base de datos
@@ -101,7 +111,7 @@ int main(int argc, char* argv[])
       work W(C);
       //Seleccionamos las relaciones de la palabra con id2 = x
       C.prepare("get_id","SELECT id2,freq FROM relaciones20 WHERE id2 = $1");
-      result R( W.prepared("get_id")(20551).exec());
+      result R( W.prepared("get_id")(1685).exec());
       W.commit();
       for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
          vector_rel.push_back({c[0].as<int>(),c[1].as<double>()});   
@@ -143,10 +153,14 @@ int main(int argc, char* argv[])
             vector_rel.push_back({c[0].as<int>(),c[1].as<double>()}); 
          }
          vector_dis.push_back({id_pal[i],distanciacos(vector_nor,vector_rel)});
+         //cout << "Todos los valores de la tabla relaciones" << endl;
+         //mostrar_vec(vector_rel);
          vector_rel.clear();       
       }
+      sort(vector_dis.begin(),vector_dis.end(),my_cmp);
+
       cout << "vector distancias" << endl;
-      mostrar_vecd(vector_dis);
+      mostrar_vecd(vector_dis,palabras,id_pal);
       
       cout << "Operation done successfully" << endl;
       
