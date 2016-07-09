@@ -114,8 +114,10 @@ int main(int argc, char* argv[])
       connection C("dbname=BD2_corpus_final user=postgres password=Hakerlol1 \
       hostaddr=127.0.0.1 port=5432");
       work W(C);
-      //Seleccionamos las relaciones de la palabra con id1 = x
-      C.prepare("get_id","SELECT id2,freq FROM relaciones20 WHERE id1 = $1");
+      //Seleccionamos las relaciones de la palabra con id1 = x (tabla con 10 palabras)
+      //C.prepare("get_id","SELECT id2,freq FROM relaciones20 WHERE id1 = $1");
+      //Seleccionamos las relaciones de la palabra con id1 = x (tabla completa)
+      C.prepare("get_id","SELECT id2,freq FROM relaciones WHERE id1 = $1");
       result R( W.prepared("get_id")(36880).exec());
       W.commit();
       auto t0 = Time::now();
@@ -123,13 +125,13 @@ int main(int argc, char* argv[])
          vector_rel.push_back({c[0].as<int>(),c[1].as<long double>()});   
       }
 
-      cout << "Valores de la palabra con id2:20551" << endl;
-      mostrar_vec(vector_rel);
+      //cout << "Valores de la palabra con id2:20551" << endl;
+      //mostrar_vec(vector_rel);
 
       vector_nor = normalizar(vector_rel);
 
-      cout << "valores normalizados" << endl;
-      mostrar_vec(vector_nor);
+      //cout << "valores normalizados" << endl;
+      //mostrar_vec(vector_nor);
 
       vector_rel.clear();
 
@@ -137,10 +139,12 @@ int main(int argc, char* argv[])
       //mostrar_vec(vector_rel);
       //hasta aqui funciona
       
-      for (int i = 0; i < id_pal.size(); ++i)
+      //for (int i = 0; i < id_pal.size(); ++i)
+      for (int i = 1; i <= 54457; ++i)   
       {
          //sacamos las palabras en bloques de acuerdo al vector 'id_pal'
          work W1(C);
+         //
          C.prepare("get_id2","SELECT id2,freq FROM relaciones20 WHERE id1 = $1");
          result S( W1.prepared("get_id2")(id_pal[i]).exec());
          W1.commit();
@@ -153,12 +157,17 @@ int main(int argc, char* argv[])
          //mostrar_vec(vector_rel);
          vector_rel.clear();       
       }
-      sort(vector_dis.begin(),vector_dis.end(),my_cmp);
       auto t1 = Time::now();
+      sort(vector_dis.begin(),vector_dis.end(),my_cmp);
       fsec fs = t1 - t0;
       ms d = std::chrono::duration_cast<ms>(fs);
-      cout << "vector distancias" << endl;
-      mostrar_vecd(vector_dis,palabras,id_pal);
+      for(auto i : vector_dis)
+      {
+         cout << "id: " << i.id  << "\t dist:" << i.dist << endl;
+      }
+
+      //cout << "vector distancias" << endl;
+      //mostrar_vecd(vector_dis,palabras,id_pal);
       
       std::cout << fs.count() << " seg.\n";
       //std::cout << d.count() << "ms\n";
