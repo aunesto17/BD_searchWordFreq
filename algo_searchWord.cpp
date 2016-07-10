@@ -47,6 +47,14 @@ vector<ele_rel> normalizar(vector<ele_rel> a)
    return b;
 }
 
+//sqrt modificada
+double inline __declspec (naked) __fastcall sqrt14(double n)
+{
+   _asm fld qword ptr [esp+4]
+   _asm fsqrt
+   _asm ret 8
+} 
+
 //funcion para sacar la distancia entre 2 sets de palabras
 long double distanciacos(vector<ele_rel> a, vector<ele_rel> b)
 {
@@ -58,7 +66,7 @@ long double distanciacos(vector<ele_rel> a, vector<ele_rel> b)
    long double res;
    for (int i = 0; i < tam2; ++i)
    {sumv2 = sumv2 + pow(b[i].freq,2);}
-   sumv2 = sqrt(sumv2);
+   sumv2 = sqrt14(sumv2);
    int i = 0;
    int j = 0;
    while(i<tam1 && j<tam2){
@@ -118,7 +126,7 @@ int main(int argc, char* argv[])
       //C.prepare("get_id","SELECT id2,freq FROM relaciones20 WHERE id1 = $1");
       //Seleccionamos las relaciones de la palabra con id1 = x (tabla completa)
       C.prepare("get_id","SELECT id2,freq FROM relaciones WHERE id1 = $1");
-      result R( W.prepared("get_id")(36880).exec());
+      result R( W.prepared("get_id")(1685).exec());
       W.commit();
       auto t0 = Time::now();
       for (result::const_iterator c = R.begin(); c != R.end(); ++c) {
@@ -140,19 +148,19 @@ int main(int argc, char* argv[])
       //hasta aqui funciona
       
       //for (int i = 0; i < id_pal.size(); ++i)
-      for (int i = 1; i <= 54457; ++i)   
+      for (int i = 1; i <= 27229; ++i)   
       {
          //sacamos las palabras en bloques de acuerdo al vector 'id_pal'
          work W1(C);
          //
-         C.prepare("get_id2","SELECT id2,freq FROM relaciones20 WHERE id1 = $1");
-         result S( W1.prepared("get_id2")(id_pal[i]).exec());
+         C.prepare("get_id2","SELECT id2,freq FROM relaciones WHERE id1 = $1");
+         result S( W1.prepared("get_id2")(i).exec());
          W1.commit();
          //Guardamos todos los registros
          for (result::const_iterator c = S.begin(); c != S.end(); ++c) {
             vector_rel.push_back({c[0].as<int>(),c[1].as<long double>()}); 
          }
-         vector_dis.push_back({id_pal[i],distanciacos(vector_nor,vector_rel)});
+         vector_dis.push_back({i,distanciacos(vector_nor,vector_rel)});
          //cout << "Todos los valores de la tabla relaciones" << endl;
          //mostrar_vec(vector_rel);
          vector_rel.clear();       
@@ -161,9 +169,15 @@ int main(int argc, char* argv[])
       sort(vector_dis.begin(),vector_dis.end(),my_cmp);
       fsec fs = t1 - t0;
       ms d = std::chrono::duration_cast<ms>(fs);
+      cout << fixed;
+      /*
       for(auto i : vector_dis)
       {
          cout << "id: " << i.id  << "\t dist:" << i.dist << endl;
+      }*/
+      for (int i = 0; i < 100; ++i)
+      {
+         cout << "id: " << vector_dis[i].id  << "\t dist:" << vector_dis[i].dist << endl;
       }
 
       //cout << "vector distancias" << endl;
